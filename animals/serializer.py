@@ -11,7 +11,7 @@ from characteristics.serializer import CharacteristicSerializer
 
 
 class AnimalSerializer(serializers.Serializer):
-
+    id = serializers.IntegerField(read_only=True)
     name = serializers.CharField(max_length=50)
     age = serializers.FloatField()
     weight = serializers.FloatField()
@@ -23,7 +23,7 @@ class AnimalSerializer(serializers.Serializer):
     # print(f">>>\n{characteristic}\n")
 
     def create(self, validated_data: dict):
-        print(f">>>\n{validated_data}\n")
+        # print(f">>>\n{validated_data}\n")
 
         valid_group = validated_data.pop("group")
         characteristics = validated_data.pop("characteristics")
@@ -34,20 +34,24 @@ class AnimalSerializer(serializers.Serializer):
         animal = Animal.objects.create(**validated_data, group=new_group)
 
         for item in characteristics:
-            # criar na tabela de characteristic
+
             new_characteristic, _ = Characteristic.objects.get_or_create(**item)
             animal.characteristics.add(new_characteristic)
 
         return animal
-        # characteristic = Characteristic.objects.create(**validated_data)
-        # animal = Animal.objects.create(**validated_data)
 
-    # Separar informações que estão vindo da sua requisição para preencher as respectivas models (Animal, Group e Characteristic)
+    def update(self, instance: Animal, validated_data: dict):
+        # print(f">>>\n{instance}\n")
+        # print(f">>>\n{validated_data}\n")
 
-    # Verificar se o group existe, caso não exista você deve criar
+        non_editable_keys = ("sex", "group", "characteristics")
 
-    # Utilização do método get_or_create, para fazer a verificação se existe ou não ou se cria ou não, na parte de Group e Characteristics https://docs.djangoproject.com/en/4.0/ref/models/querysets/ da um ctrl f e procura por get_or_create
+        for key, value in validated_data.items():
+            if key in non_editable_keys:
+                # print(f"aqui{key}")
+                raise KeyError
+            setattr(instance, key, value)
 
-    # Instanciar Animal com suas informações atrelando o group criado
+        instance.save()
 
-    # O mesmo processo de para group, lembrando que characteristics é uma lista de characteristic
+        return instance
