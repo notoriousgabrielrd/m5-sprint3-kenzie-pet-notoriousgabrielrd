@@ -19,16 +19,12 @@ class AnimalSerializer(serializers.Serializer):
 
     group = GroupSerializer()
     characteristics = CharacteristicSerializer(many=True)
-    # print(f">>>\n{group}\n")
-    # print(f">>>\n{characteristic}\n")
 
     def create(self, validated_data: dict):
-        # print(f">>>\n{validated_data}\n")
 
         valid_group = validated_data.pop("group")
         characteristics = validated_data.pop("characteristics")
 
-        # animal
         new_group, _ = Group.objects.get_or_create(**valid_group)
 
         animal = Animal.objects.create(**validated_data, group=new_group)
@@ -41,14 +37,11 @@ class AnimalSerializer(serializers.Serializer):
         return animal
 
     def update(self, instance: Animal, validated_data: dict):
-        # print(f">>>\n{instance}\n")
-        # print(f">>>\n{validated_data}\n")
 
         non_editable_keys = ("sex", "group", "characteristics")
 
         for key, value in validated_data.items():
             if key in non_editable_keys:
-                # print(f"aqui{key}")
                 raise KeyError
             setattr(instance, key, value)
 
